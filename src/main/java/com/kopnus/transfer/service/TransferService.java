@@ -12,11 +12,6 @@ import java.util.Objects;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-/**
- * Mengatur duplicate request protection. Perpindahan uangnya ada di TransferExecutor,
- * kelas terpisah supaya @Transactional bekerja dan transaksi sudah di-rollback
- * saat pelanggaran unique constraint ditangkap di sini.
- */
 @Service
 public class TransferService {
 

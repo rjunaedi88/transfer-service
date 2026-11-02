@@ -41,7 +41,7 @@ public class TransferExecutor {
     public TransferResult execute(Long customerId, String idempotencyKey, String requestHash, TransferRequest request) {
         Map<String, Account> accounts = lockAccounts(request);
 
-        // Dicek ulang setelah dapat kunci: request kembar yang tadi menunggu kunci harus
+        // Dicek ulang setelah dapat key: request kembar yang tadi menunggu kunci harus
         // melihat hasil pemenang, bukan gagal karena saldonya sudah terpotong oleh pemenang.
         Optional<Transfer> existing = transferRepository.findByCustomerIdAndIdempotencyKey(customerId, idempotencyKey);
         if (existing.isPresent()) {

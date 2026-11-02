@@ -1,0 +1,516 @@
+{
+  "info": {
+    "name": "Transfer Service",
+    "description": "Pengujian REST API transfer dana. Jalankan aplikasi dengan docker compose, lalu jalankan folder berurutan lewat Run Collection. Request 1. Login budi menyimpan token dan membuat Idempotency-Key baru, jadi jalankan request itu lebih dulu jika mencoba satu per satu.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "sourceAccount", "value": "1000000001", "type": "string" },
+    { "key": "destinationAccount", "value": "1000000002", "type": "string" },
+    { "key": "blockedAccount", "value": "1000000004", "type": "string" },
+    { "key": "unknownAccount", "value": "9999999999", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "idempotencyKey", "value": "", "type": "string" },
+    { "key": "transferId", "value": "", "type": "string" },
+    { "key": "rateLimitAttempts", "value": "0", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "1. Login budi",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('token diterima', () => {",
+                  "    pm.expect(body.accessToken).to.be.a('string').and.not.empty;",
+                  "    pm.expect(body.tokenType).to.eql('Bearer');",
+                  "});",
+                  "pm.collectionVariables.set('token', body.accessToken);",
+                  "pm.collectionVariables.set('idempotencyKey', pm.variables.replaceIn('{{$guid}}'));",
+                  "pm.collectionVariables.set('rateLimitAttempts', '0');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"budi\",\n  \"password\": \"Password123!\"\n}"
+            }
+          }
+        },
+        {
+          "name": "2. Login password salah",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 401', () => pm.response.to.have.status(401));",
+                  "pm.test('code INVALID_CREDENTIALS', () => pm.expect(pm.response.json().code).to.eql('INVALID_CREDENTIALS'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"budi\",\n  \"password\": \"salah\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transfer berhasil dan duplicate request",
+      "item": [
+        {
+          "name": "3. Transfer berhasil",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('Idempotent-Replayed false', () => pm.expect(pm.response.headers.get('Idempotent-Replayed')).to.eql('false'));",
+                  "const body = pm.response.json();",
+                  "pm.test('transfer SUCCESS', () => {",
+                  "    pm.expect(body.status).to.eql('SUCCESS');",
+                  "    pm.expect(body.amount).to.eql(150000);",
+                  "});",
+                  "pm.collectionVariables.set('transferId', body.transferId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Idempotency-Key", "value": "{{idempotencyKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "transfers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{destinationAccount}}\",\n  \"amount\": 150000,\n  \"description\": \"Bayar makan\"\n}"
+            }
+          }
+        },
+        {
+          "name": "4. Retry dengan key sama",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Idempotent-Replayed true', () => pm.expect(pm.response.headers.get('Idempotent-Replayed')).to.eql('true'));",
+                  "pm.test('transferId sama dengan transfer pertama', () => {",
+                  "    pm.expect(pm.response.json().transferId).to.eql(pm.collectionVariables.get('transferId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Idempotency-Key", "value": "{{idempotencyKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "transfers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{destinationAccount}}\",\n  \"amount\": 150000,\n  \"description\": \"Bayar makan\"\n}"
+            }
+          }
+        },
+        {
+          "name": "5. Key sama dengan nominal beda",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 409', () => pm.response.to.have.status(409));",
+                  "pm.test('code IDEMPOTENCY_KEY_CONFLICT', () => pm.expect(pm.response.json().code).to.eql('IDEMPOTENCY_KEY_CONFLICT'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Idempotency-Key", "value": "{{idempotencyKey}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "transfers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{destinationAccount}}\",\n  \"amount\": 200000,\n  \"description\": \"Bayar makan\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Aturan bisnis",
+      "item": [
+        {
+          "name": "6. Saldo tidak cukup",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 422', () => pm.response.to.have.status(422));",
+                  "pm.test('code INSUFFICIENT_BALANCE', () => pm.expect(pm.response.json().code).to.eql('INSUFFICIENT_BALANCE'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Idempotency-Key", "value": "{{$guid}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "transfers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{destinationAccount}}\",\n  \"amount\": 99999999\n}"
+            }
+          }
+        },
+        {
+          "name": "7. Rekening asal milik orang lain",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 403', () => pm.response.to.have.status(403));",
+                  "pm.test('code ACCOUNT_ACCESS_DENIED', () => pm.expect(pm.response.json().code).to.eql('ACCOUNT_ACCESS_DENIED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Idempotency-Key", "value": "{{$guid}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "transfers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceAccountNumber\": \"{{destinationAccount}}\",\n  \"destinationAccountNumber\": \"{{sourceAccount}}\",\n  \"amount\": 1000\n}"
+            }
+          }
+        },
+        {
+          "name": "8. Rekening tujuan diblokir",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 422', () => pm.response.to.have.status(422));",
+                  "pm.test('code ACCOUNT_INACTIVE', () => pm.expect(pm.response.json().code).to.eql('ACCOUNT_INACTIVE'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Idempotency-Key", "value": "{{$guid}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "transfers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{blockedAccount}}\",\n  \"amount\": 1000\n}"
+            }
+          }
+        },
+        {
+          "name": "9. Rekening tidak ditemukan",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 404', () => pm.response.to.have.status(404));",
+                  "pm.test('code ACCOUNT_NOT_FOUND', () => pm.expect(pm.response.json().code).to.eql('ACCOUNT_NOT_FOUND'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Idempotency-Key", "value": "{{$guid}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "transfers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{unknownAccount}}\",\n  \"amount\": 1000\n}"
+            }
+          }
+        },
+        {
+          "name": "10. Rekening asal dan tujuan sama",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('code SAME_ACCOUNT', () => pm.expect(pm.response.json().code).to.eql('SAME_ACCOUNT'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Idempotency-Key", "value": "{{$guid}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "transfers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{sourceAccount}}\",\n  \"amount\": 1000\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Validasi dan autentikasi",
+      "item": [
+        {
+          "name": "11. Nominal negatif",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));",
+                  "const body = pm.response.json();",
+                  "pm.test('code VALIDATION_ERROR', () => pm.expect(body.code).to.eql('VALIDATION_ERROR'));",
+                  "pm.test('detail menyebut amount', () => pm.expect(body.details.join(' ')).to.include('amount'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Idempotency-Key", "value": "{{$guid}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "transfers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{destinationAccount}}\",\n  \"amount\": -5000\n}"
+            }
+          }
+        },
+        {
+          "name": "12. Tanpa Idempotency-Key",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('pesan menyebut Idempotency-Key', () => pm.expect(pm.response.json().message).to.include('Idempotency-Key'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "transfers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{destinationAccount}}\",\n  \"amount\": 1000\n}"
+            }
+          }
+        },
+        {
+          "name": "13. Tanpa token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 401', () => pm.response.to.have.status(401));",
+                  "pm.test('code UNAUTHORIZED', () => pm.expect(pm.response.json().code).to.eql('UNAUTHORIZED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "auth": { "type": "noauth" },
+            "header": [
+              { "key": "Idempotency-Key", "value": "{{$guid}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "transfers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{destinationAccount}}\",\n  \"amount\": 1000\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rate limit",
+      "item": [
+        {
+          "name": "14. Transfer sampai kena limit",
+          "description": "Saat dijalankan lewat Run Collection, request ini mengulang dirinya sendiri sampai mendapat 429. Setiap percobaan yang berhasil memindahkan Rp1.",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const attempts = Number(pm.collectionVariables.get('rateLimitAttempts')) + 1;",
+                  "pm.collectionVariables.set('rateLimitAttempts', String(attempts));",
+                  "if (pm.response.code === 429) {",
+                  "    pm.test('status 429 dengan Retry-After', () => {",
+                  "        pm.expect(pm.response.json().code).to.eql('RATE_LIMIT_EXCEEDED');",
+                  "        pm.expect(Number(pm.response.headers.get('Retry-After'))).to.be.above(0);",
+                  "    });",
+                  "    pm.collectionVariables.set('rateLimitAttempts', '0');",
+                  "} else if (attempts < 25) {",
+                  "    pm.test('masih di bawah limit: status 201', () => pm.response.to.have.status(201));",
+                  "    pm.execution.setNextRequest(pm.info.requestName);",
+                  "} else {",
+                  "    pm.test('limit seharusnya tercapai dalam 25 percobaan', () => pm.expect.fail('tidak mendapat 429'));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Idempotency-Key", "value": "{{$guid}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transfers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "transfers"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{destinationAccount}}\",\n  \"amount\": 1\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

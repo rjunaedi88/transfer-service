@@ -100,6 +100,13 @@ Semua error memakai format yang sama:
 | 429 | `RATE_LIMIT_EXCEEDED` | Melebihi 20 transfer/menit per nasabah atau 5 login/menit per IP, disertai `Retry-After` |
 | 503 | `SERVICE_BUSY` | Rekening sedang terkunci terlalu lama atau database penuh, aman diulang dengan key yang sama |
 
+### Postman
+
+Import [postman/transfer-service.postman_collection.json](postman/transfer-service.postman_collection.json),
+lalu pilih **Run collection**. Token dan `Idempotency-Key` diatur otomatis, dan setiap request punya test
+sendiri. Jika mencoba satu per satu, kirim `1. Login budi` lebih dulu. Request terakhir sengaja menghabiskan
+kuota rate limit, jadi tunggu 1 menit sebelum menjalankan ulang.
+
 ## Arsitektur
 
 Aplikasi memakai arsitektur berlapis dalam satu service. Pilihan ini cukup untuk satu endpoint,

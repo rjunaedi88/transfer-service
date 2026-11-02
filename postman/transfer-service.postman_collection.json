@@ -11,11 +11,6 @@
     ]
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
-    { "key": "sourceAccount", "value": "1000000001", "type": "string" },
-    { "key": "destinationAccount", "value": "1000000002", "type": "string" },
-    { "key": "blockedAccount", "value": "1000000004", "type": "string" },
-    { "key": "unknownAccount", "value": "9999999999", "type": "string" },
     { "key": "token", "value": "", "type": "string" },
     { "key": "idempotencyKey", "value": "", "type": "string" },
     { "key": "transferId", "value": "", "type": "string" },
@@ -53,8 +48,10 @@
               { "key": "Content-Type", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/login",
-              "host": ["{{baseUrl}}"],
+              "raw": "http://localhost:8080/api/v1/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
               "path": ["api", "v1", "auth", "login"]
             },
             "body": {
@@ -84,8 +81,10 @@
               { "key": "Content-Type", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/auth/login",
-              "host": ["{{baseUrl}}"],
+              "raw": "http://localhost:8080/api/v1/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
               "path": ["api", "v1", "auth", "login"]
             },
             "body": {
@@ -126,13 +125,15 @@
               { "key": "Content-Type", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/transfers",
-              "host": ["{{baseUrl}}"],
+              "raw": "http://localhost:8080/api/v1/transfers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
               "path": ["api", "v1", "transfers"]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{destinationAccount}}\",\n  \"amount\": 150000,\n  \"description\": \"Bayar makan\"\n}"
+              "raw": "{\n  \"sourceAccountNumber\": \"1000000001\",\n  \"destinationAccountNumber\": \"1000000002\",\n  \"amount\": 150000,\n  \"description\": \"Bayar makan\"\n}"
             }
           }
         },
@@ -160,13 +161,15 @@
               { "key": "Content-Type", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/transfers",
-              "host": ["{{baseUrl}}"],
+              "raw": "http://localhost:8080/api/v1/transfers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
               "path": ["api", "v1", "transfers"]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{destinationAccount}}\",\n  \"amount\": 150000,\n  \"description\": \"Bayar makan\"\n}"
+              "raw": "{\n  \"sourceAccountNumber\": \"1000000001\",\n  \"destinationAccountNumber\": \"1000000002\",\n  \"amount\": 150000,\n  \"description\": \"Bayar makan\"\n}"
             }
           }
         },
@@ -191,13 +194,15 @@
               { "key": "Content-Type", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/transfers",
-              "host": ["{{baseUrl}}"],
+              "raw": "http://localhost:8080/api/v1/transfers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
               "path": ["api", "v1", "transfers"]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{destinationAccount}}\",\n  \"amount\": 200000,\n  \"description\": \"Bayar makan\"\n}"
+              "raw": "{\n  \"sourceAccountNumber\": \"1000000001\",\n  \"destinationAccountNumber\": \"1000000002\",\n  \"amount\": 200000,\n  \"description\": \"Bayar makan\"\n}"
             }
           }
         }
@@ -227,13 +232,15 @@
               { "key": "Content-Type", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/transfers",
-              "host": ["{{baseUrl}}"],
+              "raw": "http://localhost:8080/api/v1/transfers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
               "path": ["api", "v1", "transfers"]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{destinationAccount}}\",\n  \"amount\": 99999999\n}"
+              "raw": "{\n  \"sourceAccountNumber\": \"1000000001\",\n  \"destinationAccountNumber\": \"1000000002\",\n  \"amount\": 99999999\n}"
             }
           }
         },
@@ -258,13 +265,15 @@
               { "key": "Content-Type", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/transfers",
-              "host": ["{{baseUrl}}"],
+              "raw": "http://localhost:8080/api/v1/transfers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
               "path": ["api", "v1", "transfers"]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sourceAccountNumber\": \"{{destinationAccount}}\",\n  \"destinationAccountNumber\": \"{{sourceAccount}}\",\n  \"amount\": 1000\n}"
+              "raw": "{\n  \"sourceAccountNumber\": \"1000000002\",\n  \"destinationAccountNumber\": \"1000000001\",\n  \"amount\": 1000\n}"
             }
           }
         },
@@ -289,13 +298,15 @@
               { "key": "Content-Type", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/transfers",
-              "host": ["{{baseUrl}}"],
+              "raw": "http://localhost:8080/api/v1/transfers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
               "path": ["api", "v1", "transfers"]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{blockedAccount}}\",\n  \"amount\": 1000\n}"
+              "raw": "{\n  \"sourceAccountNumber\": \"1000000001\",\n  \"destinationAccountNumber\": \"1000000004\",\n  \"amount\": 1000\n}"
             }
           }
         },
@@ -320,13 +331,15 @@
               { "key": "Content-Type", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/transfers",
-              "host": ["{{baseUrl}}"],
+              "raw": "http://localhost:8080/api/v1/transfers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
               "path": ["api", "v1", "transfers"]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{unknownAccount}}\",\n  \"amount\": 1000\n}"
+              "raw": "{\n  \"sourceAccountNumber\": \"1000000001\",\n  \"destinationAccountNumber\": \"9999999999\",\n  \"amount\": 1000\n}"
             }
           }
         },
@@ -351,13 +364,15 @@
               { "key": "Content-Type", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/transfers",
-              "host": ["{{baseUrl}}"],
+              "raw": "http://localhost:8080/api/v1/transfers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
               "path": ["api", "v1", "transfers"]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{sourceAccount}}\",\n  \"amount\": 1000\n}"
+              "raw": "{\n  \"sourceAccountNumber\": \"1000000001\",\n  \"destinationAccountNumber\": \"1000000001\",\n  \"amount\": 1000\n}"
             }
           }
         }
@@ -389,13 +404,15 @@
               { "key": "Content-Type", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/transfers",
-              "host": ["{{baseUrl}}"],
+              "raw": "http://localhost:8080/api/v1/transfers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
               "path": ["api", "v1", "transfers"]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{destinationAccount}}\",\n  \"amount\": -5000\n}"
+              "raw": "{\n  \"sourceAccountNumber\": \"1000000001\",\n  \"destinationAccountNumber\": \"1000000002\",\n  \"amount\": -5000\n}"
             }
           }
         },
@@ -419,13 +436,15 @@
               { "key": "Content-Type", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/transfers",
-              "host": ["{{baseUrl}}"],
+              "raw": "http://localhost:8080/api/v1/transfers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
               "path": ["api", "v1", "transfers"]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{destinationAccount}}\",\n  \"amount\": 1000\n}"
+              "raw": "{\n  \"sourceAccountNumber\": \"1000000001\",\n  \"destinationAccountNumber\": \"1000000002\",\n  \"amount\": 1000\n}"
             }
           }
         },
@@ -451,13 +470,15 @@
               { "key": "Content-Type", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/transfers",
-              "host": ["{{baseUrl}}"],
+              "raw": "http://localhost:8080/api/v1/transfers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
               "path": ["api", "v1", "transfers"]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{destinationAccount}}\",\n  \"amount\": 1000\n}"
+              "raw": "{\n  \"sourceAccountNumber\": \"1000000001\",\n  \"destinationAccountNumber\": \"1000000002\",\n  \"amount\": 1000\n}"
             }
           }
         }
@@ -500,13 +521,15 @@
               { "key": "Content-Type", "value": "application/json" }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/transfers",
-              "host": ["{{baseUrl}}"],
+              "raw": "http://localhost:8080/api/v1/transfers",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
               "path": ["api", "v1", "transfers"]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"sourceAccountNumber\": \"{{sourceAccount}}\",\n  \"destinationAccountNumber\": \"{{destinationAccount}}\",\n  \"amount\": 1\n}"
+              "raw": "{\n  \"sourceAccountNumber\": \"1000000001\",\n  \"destinationAccountNumber\": \"1000000002\",\n  \"amount\": 1\n}"
             }
           }
         }
